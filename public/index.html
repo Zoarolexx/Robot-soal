@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Zerozx</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #00d9ff;
+    --purple: #7c5cff;
+    --bg: #0a0e14;
+    --surface: #12161e;
+    --surface-2: #1a1f2b;
+    --border: #232936;
+    --text: #e6edf3;
+    --text-dim: #8b96a5;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .screen { position: fixed; inset: 0; display: none; }
+  .screen.active { display: block; }
+
+  /* ===== INPUT ===== */
+  #screen-input {
+    padding: 24px;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(0,217,255,.08), transparent 60%),
+      radial-gradient(circle at 80% 90%, rgba(124,92,255,.08), transparent 60%),
+      var(--bg);
+  }
+  #screen-input.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .input-card { width: 100%; max-width: 380px; text-align: center; }
+
+  .robot-preview {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+
+  .input-card h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    margin-bottom: 6px;
+  }
+  .input-card h1 span { color: var(--cyan); }
+
+  .input-card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  .input-card input {
+    width: 100%;
+    padding: 15px 18px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border .2s;
+  }
+  .input-card input:focus { border-color: var(--cyan); }
+  .input-card input::placeholder { color: #566072; }
+
+  .input-card button {
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    color: #000;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  .input-card button:active { transform: scale(.97); }
+
+  /* ===== LOADING ===== */
+  #screen-loading {
+    background: var(--bg);
+    padding: 24px;
+  }
+  #screen-loading.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .loader-ring {
+    width: 64px;
+    height: 64px;
+    border: 3px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #loadingText { color: var(--text-dim); font-size: 14px; }
+
+  #loadingError {
+    color: #ff5577;
+    font-size: 13px;
+    text-align: center;
+    max-width: 400px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  #backBtn {
+    display: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* ===== VIEWER ===== */
+  #screen-viewer { background: #fff; }
+
+  #pageContainer {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    overflow: auto;
+  }
+  #pageContainer iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  #tapLayer {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    background: transparent;
+    touch-action: manipulation;
+  }
+
+  /* ===== ROBOT ===== */
+  #robotLogo {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 68px;
+    height: 68px;
+    z-index: 100;
+    cursor: pointer;
+    animation: popIn .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  #robotLogo.hidden { display: none; }
+  #robotLogo:active { transform: scale(.9); }
+
+  #robotLogo img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: block;
+    box-shadow:
+      0 8px 32px rgba(0,217,255,.45),
+      0 0 0 2px rgba(0,217,255,.25);
+    animation: glow 2.5s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% {
+      box-shadow:
+        0 8px 32px rgba(0,217,255,.45),
+        0 0 0 2px rgba(0,217,255,.25);
+    }
+    50% {
+      box-shadow:
+        0 8px 44px rgba(0,217,255,.9),
+        0 0 0 3px rgba(0,217,255,.55);
+    }
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  #robotLogo::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--cyan);
+    opacity: 0;
+    animation: ring 2.5s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes ring {
+    0%   { transform: scale(1);   opacity: .7; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+
+  /* ===== MENU ===== */
+  #robotMenu {
+    position: fixed;
+    right: 18px;
+    bottom: 100px;
+    width: 230px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    z-index: 101;
+    box-shadow: 0 20px 60px rgba(0,0,0,.7);
+    animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  #robotMenu.hidden { display: none; }
+
+  .menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    color: var(--cyan);
+  }
+  .menu-header button {
+    background: none; border: none;
+    color: var(--text-dim); font-size: 18px;
+    cursor: pointer; padding: 0 4px;
+  }
+
+  #robotMenu button[data-action] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  #robotMenu button[data-action]:last-child { border-bottom: none; }
+  #robotMenu button[data-action]:active { background: var(--surface-2); }
+
+  .menu-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: rgba(0,217,255,.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ===== PANEL ===== */
+  .panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp .3s ease;
+  }
+  .panel.hidden { display: none; }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .panel-header button {
+    background: none; border: none;
+    color: var(--text-dim); font-size: 20px;
+    cursor: pointer; padding: 0 4px;
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px 30px;
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  .panel-body h3 {
+    font-size: 13px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 18px 0 10px;
+  }
+  .panel-body h3:first-child { margin-top: 0; }
+
+  .panel-body p {
+    color: var(--text);
+    margin-bottom: 6px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .panel-body ol, .panel-body ul {
+    padding-left: 20px;
+    margin-bottom: 8px;
+  }
+  .panel-body li { margin-bottom: 6px; }
+
+  .soal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .soal-card .q {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .soal-card .a {
+    color: var(--cyan);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .soal-card .r {
+    color: var(--text-dim);
+    font-size: 12.5px;
+    font-style: italic;
+  }
+
+  .big-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    color: #000;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 16px;
+    text-align: center;
+    text-decoration: none;
+  }
+  .big-btn:active { transform: scale(.97); }
+
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 40px 0;
+  }
+  .loading-dots span {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: bounce 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: .15s; }
+  .loading-dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(.6); opacity: .4; }
+    40%           { transform: scale(1);  opacity: 1; }
+  }
+
+  .error-msg {
+    color: #ff5577;
+    background: rgba(255,85,119,.08);
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,85,119,.2);
+    font-size: 13.5px;
+    word-break: break-word;
+  }
+
+  /* ===== CHAT ===== */
+  #chatPanel { display: flex; flex-direction: column; }
+
+  #chatLog {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    animation: msgIn .25s ease;
+  }
+  @keyframes msgIn {
+    from { transform: translateY(6px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--cyan), #00a5c4);
+    color: #000;
+    font-weight: 500;
+    border-bottom-right-radius: 5px;
+  }
+  .msg.ai {
+    align-self: flex-start;
+    background: var(--surface-2);
+    color: var(--text);
+    border-bottom-left-radius: 5px;
+    border: 1px solid var(--border);
+  }
+
+  .chat-input {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .chat-input input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .chat-input input:focus { border-color: var(--cyan); }
+  .chat-input button {
+    width: 46px;
+    border-radius: 50%;
+    border: none;
+    background: var(--cyan);
+    color: #000;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .chat-input button:active { transform: scale(.92); }
+</style>
+</head>
+<body>
+
+<div id="screen-input" class="screen active">
+  <div class="input-card">
+    <img src="robot.svg" alt="Zerozx" class="robot-preview">
+    <h1>Zero<span>zx</span></h1>
+    <p>Masukin URL soal, biar gue yang urus</p>
+    <input type="url" id="urlInput" placeholder="https://docs.google.com/forms/d/e/.../viewform">
+    <button id="goBtn">Gas Kerjakan</button>
+  </div>
+</div>
+
+<div id="screen-loading" class="screen">
+  <div class="loader-ring"></div>
+  <p id="loadingText">Mengambil halaman...</p>
+  <p id="loadingError"></p>
+  <button id="backBtn">← Balik</button>
+</div>
+
+<div id="screen-viewer" class="screen">
+  <div id="pageContainer"></div>
+  <div id="tapLayer"></div>
+
+  <div id="robotLogo" class="hidden">
+    <img src="robot.svg" alt="Zerozx">
+  </div>
+
+  <div id="robotMenu" class="hidden">
+    <div class="menu-header">
+      <span>ZEROZX AI</span>
+      <button id="closeMenu">✕</button>
+    </div>
+    <button data-action="solve">
+      <span class="menu-icon">⚡</span> Kerjakan Soal
+    </button>
+    <button data-action="chat">
+      <span class="menu-icon">💬</span> Chat dengan AI
+    </button>
+    <button data-action="hint">
+      <span class="menu-icon">💡</span> Petunjuk Jawaban
+    </button>
+  </div>
+
+  <div id="resultPanel" class="panel hidden">
+    <div class="panel-header">
+      <span id="panelTitle">Hasil</span>
+      <button id="closePanel">✕</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+
+  <div id="chatPanel" class="panel hidden">
+    <div class="panel-header">
+      <span>Chat dengan AI</span>
+      <button id="closeChat">✕</button>
+    </div>
+    <div id="chatLog"></div>
+    <div class="chat-input">
+      <input id="chatInput" placeholder="Tanya apa aja...">
+      <button id="sendChat">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentData = null;
+let chatHistory = [];
+
+const $ = id => document.getElementById(id);
+
+function showScreen(id) {
+  document.querySelectorAll('.screen')
+    .forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+/* ===== INPUT ===== */
+$('goBtn').onclick = async () => {
+  const url = $('urlInput').value.trim();
+  if (!url) return alert('Masukin URL dulu');
+
+  showScreen('screen-loading');
+  $('loadingText').textContent = 'Mengambil halaman...';
+  $('loadingError').textContent = '';
+  $('backBtn').style.display = 'none';
+
+  try {
+    const r = await fetch('/api/fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${r.status}`);
+    }
+
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+
+    currentData = data;
+
+    // ==== GOOGLE FORM ====
+    if (data.type === 'google-form') {
+      $('loadingText').textContent = `${data.questions.length} soal ketemu. AI lagi ngerjain...`;
+
+      // Langsung kerjakan
+      await solveGoogleForm();
+      return;
+    }
+
+    // ==== WEBSITE BIASA ====
+    $('loadingText').textContent = 'Merender...';
+    const container = $('pageContainer');
+    container.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.sandbox = 'allow-same-origin allow-forms allow-scripts allow-popups';
+    iframe.srcdoc = data.html;
+    container.appendChild(iframe);
+
+    $('robotLogo').classList.add('hidden');
+    $('robotMenu').classList.add('hidden');
+
+    setTimeout(() => showScreen('screen-viewer'), 300);
+  } catch (e) {
+    $('loadingText').textContent = 'Gagal';
+    $('loadingError').textContent = e.message;
+    $('backBtn').style.display = 'inline-block';
+    console.error('Fetch error:', e);
+  }
+};
+
+$('backBtn').onclick = () => showScreen('screen-input');
+
+/* ===== GOOGLE FORM AUTO-SOLVE ===== */
+async function solveGoogleForm() {
+  try {
+    const r = await fetch('/api/solve-google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions: currentData.questions })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    // Build pre-filled URL
+    const params = d.jawaban.map(j =>
+      `${j.entryId}=${encodeURIComponent(j.jawaban)}`
+    ).join('&');
+
+    const baseUrl = currentData.originalUrl.split('?')[0];
+    const prefilledUrl = `${baseUrl}?${params}`;
+
+    // Tampilkan hasil
+    let html = `<h3>✅ ${d.jawaban.length} Soal Udah Dijawab</h3>`;
+
+    d.jawaban.forEach((j, i) => {
+      html += `<div class="soal-card">
+        <div class="q">${i + 1}. ${esc(j.title || currentData.questions[i]?.title || '')}</div>
+        <div class="a">→ ${esc(j.jawaban)}</div>
+        ${j.alasan ? `<div class="r">${esc(j.alasan)}</div>` : ''}
+      </div>`;
+    });
+
+    html += `<a href="${prefilledUrl}" target="_blank" class="big-btn">
+      🔗 Buka Form yang Udah Keisi Jawaban
+    </a>`;
+    html += `<p style="color:var(--text-dim);font-size:12.5px;margin-top:12px;text-align:center;">
+      Klik tombol di atas → form kebuka di tab baru dengan jawaban udah keisi. Tinggal klik Submit.
+    </p>`;
+
+    openPanel('Kerjakan Soal Otomatis', html);
+    showScreen('screen-viewer');
+  } catch (e) {
+    $('loadingText').textContent = 'Gagal';
+    $('loadingError').textContent = e.message;
+    $('backBtn').style.display = 'inline-block';
+  }
+}
+
+/* ===== DOUBLE TAP ===== */
+let lastTap = 0, tapTimer = null;
+
+$('tapLayer').addEventListener('touchstart', () => {
+  const now = Date.now();
+  const diff = now - lastTap;
+
+  if (diff < 300 && diff > 0) {
+    clearTimeout(tapTimer);
+    lastTap = 0;
+    onDoubleTap();
+  } else {
+    lastTap = now;
+    tapTimer = setTimeout(() => { lastTap = 0; }, 300);
+  }
+}, { passive: true });
+
+$('tapLayer').addEventListener('dblclick', onDoubleTap);
+
+function onDoubleTap() {
+  const robot = $('robotLogo');
+  const menu  = $('robotMenu');
+
+  if (robot.classList.contains('hidden')) {
+    robot.classList.remove('hidden');
+    menu.classList.add('hidden');
+    if (navigator.vibrate) navigator.vibrate(20);
+  } else {
+    robot.classList.add('hidden');
+    menu.classList.add('hidden');
+  }
+}
+
+/* ===== ROBOT MENU ===== */
+$('robotLogo').onclick = e => {
+  e.stopPropagation();
+  $('robotMenu').classList.toggle('hidden');
+};
+
+$('closeMenu').onclick = () => $('robotMenu').classList.add('hidden');
+
+$('robotMenu').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  $('robotMenu').classList.add('hidden');
+
+  if (action === 'solve') return handleSolve();
+  if (action === 'chat')  return handleChat();
+  if (action === 'hint')  return handleHint();
+});
+
+/* ===== SOLVE (WEBSITE BIASA) ===== */
+async function handleSolve() {
+  if (!currentData || currentData.type === 'google-form') {
+    return alert('Ini Google Form, soal udah otomatis dikerjakan pas lu masukin URL.');
+  }
+
+  openPanel('Kerjakan Soal Otomatis', loadingHTML('AI lagi mikir'));
+
+  try {
+    const r = await fetch('/api/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        textContent: currentData.textContent,
+        fields: currentData.fields,
+        html: currentData.html.slice(0, 3000)
+      })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    let html = `<h3>📖 Soal</h3><p>${esc(d.soal)}</p>`;
+    html += `<h3>✅ Jawaban</h3><p>${esc(d.jawaban)}</p>`;
+    if (d.alasan) html += `<h3>💡 Alasan</h3><p>${esc(d.alasan)}</p>`;
+
+    if (d.aksi?.length) {
+      html += `<h3>🎯 Yang Dilakukan</h3>`;
+      d.aksi.forEach((a, i) => {
+        html += `<p>${i + 1}. <b>[${esc(a.type)}]</b> ${esc(a.description)}</p>`;
+      });
+    }
+
+    $('panelBody').innerHTML = html;
+
+    if (d.aksi?.length) {
+      setTimeout(() => executeActions(d.aksi), 500);
+    }
+  } catch (e) {
+    $('panelBody').innerHTML = errorHTML(e.message);
+  }
+}
+
+/* ===== EKSEKUSI AKSI ===== */
+async function executeActions(aksi) {
+  const iframe = document.querySelector('#pageContainer iframe');
+  if (!iframe) return;
+
+  let doc;
+  try {
+    doc = iframe.contentDocument || iframe.contentWindow.document;
+  } catch (e) {
+    console.error('Gak bisa akses iframe:', e);
+    return;
+  }
+
+  for (const a of aksi) {
+    try {
+      await sleep(300);
+
+      if (a.type === 'fill') {
+        const el = findElement(doc, a.target, 'input, textarea');
+        if (el) {
+          el.focus();
+          el.value = a.value || '';
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      if (a.type === 'click') {
+        const el = findElement(doc, a.target, 'input, button, label, a, div, span');
+        if (el) {
+          el.click();
+          el.dispatchEvent(new Event('click', { bubbles: true }));
+        }
+      }
+
+      if (a.type === 'select') {
+        const el = findElement(doc, a.target, 'select');
+        if (el) {
+          el.value = a.value || '';
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      if (a.type === 'submit') {
+        const form = doc.querySelector('form');
+        if (form) {
+          const btn = form.querySelector(
+            'button[type="submit"], input[type="submit"], button'
+          );
+          if (btn) btn.click();
+          else form.submit();
+        }
+      }
+    } catch (e) {
+      console.error('Gagal eksekusi aksi:', a, e);
+    }
+  }
+}
+
+function findElement(doc, target, selector) {
+  if (!target) return null;
+  const t = String(target).toLowerCase();
+
+  let el = doc.getElementById(target);
+  if (el) return el;
+
+  el = doc.querySelector(`[name="${target}"]`);
+  if (el) return el;
+
+  el = doc.querySelector(`${selector}[value="${target}"]`);
+  if (el) return el;
+
+  const all = doc.querySelectorAll(selector);
+  for (const e of all) {
+    const text = (e.textContent || '').toLowerCase();
+    const label = (e.getAttribute('aria-label') || '').toLowerCase();
+    const value = (e.getAttribute('value') || '').toLowerCase();
+    if (text.includes(t) || label.includes(t) || value === t) {
+      return e;
+    }
+  }
+
+  return null;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ===== HINT ===== */
+async function handleHint() {
+  openPanel('Petunjuk Jawaban', loadingHTML('Nyari petunjuk'));
+
+  try {
+    let textContent = currentData.textContent;
+    if (currentData.type === 'google-form') {
+      textContent = currentData.questions.map(q =>
+        `${q.title}\n${q.options?.join(', ') || ''}`
+      ).join('\n\n');
+    }
+
+    const r = await fetch('/api/hint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ textContent })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    let html = `<h3>💡 Konsep Kunci</h3><p>${esc(d.konsep)}</p>`;
+    html += `<h3>🪜 Langkah-langkah</h3><ol>`;
+    d.petunjuk.forEach(p => html += `<li>${esc(p)}</li>`);
+    html += `</ol>`;
+
+    $('panelBody').innerHTML = html;
+  } catch (e) {
+    $('panelBody').innerHTML = errorHTML(e.message);
+  }
+}
+
+/* ===== CHAT ===== */
+function handleChat() {
+  $('chatPanel').classList.remove('hidden');
+  $('chatLog').innerHTML = '';
+  chatHistory = [];
+  addChat('ai', 'Halo! Ada yang bisa gue bantu soal halaman ini?');
+  setTimeout(() => $('chatInput').focus(), 300);
+}
+
+$('closeChat').onclick = () => $('chatPanel').classList.add('hidden');
+$('sendChat').onclick  = sendChat;
+$('chatInput').onkeydown = e => { if (e.key === 'Enter') sendChat(); };
+
+async function sendChat() {
+  const input = $('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  addChat('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+
+  const loadingId = addChat('ai', '...');
+
+  try {
+    let context = currentData?.textContent || '';
+    if (currentData?.type === 'google-form') {
+      context = currentData.questions.map(q => q.title).join('\n');
+    }
+
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        context: context.slice(0, 3000),
+        history: chatHistory.slice(-6)
+      })
+    });
+    const d = await r.json();
+    updateChat(loadingId, d.reply || d.error || 'Error');
+    if (d.reply) chatHistory.push({ role: 'assistant', content: d.reply });
+  } catch (e) {
+    updateChat(loadingId, 'Error: ' + e.message);
+  }
+}
+
+function addChat(role, text) {
+  const id = 'msg-' + Date.now() + '-' + Math.random();
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.id = id;
+  div.textContent = text;
+  $('chatLog').appendChild(div);
+  $('chatLog').scrollTop = $('chatLog').scrollHeight;
+  return id;
+}
+function updateChat(id, text) {
+  const el = $(id);
+  if (el) el.textContent = text;
+  $('chatLog').scrollTop = $('chatLog').scrollHeight;
+}
+
+/* ===== PANEL ===== */
+function openPanel(title, content) {
+  $('panelTitle').textContent = title;
+  $('panelBody').innerHTML = content;
+  $('resultPanel').classList.remove('hidden');
+}
+$('closePanel').onclick = () => $('resultPanel').classList.add('hidden');
+
+function loadingHTML(label) {
+  return `<div class="loading-dots">
+    <span></span><span></span><span></span>
+  </div><p style="text-align:center;color:var(--text-dim);font-size:13px;">${label}...</p>`;
+}
+
+function errorHTML(msg) {
+  return `<div class="error-msg">${esc(msg)}</div>`;
+}
+
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

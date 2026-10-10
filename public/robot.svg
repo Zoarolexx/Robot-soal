@@ -1,0 +1,411 @@
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#343d48"/>
+      <stop offset="100%" stop-color="#171c23"/>
+    </linearGradient>
+    <linearGradient id="faceGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#101820"/>
+      <stop offset="100%" stop-color="#05080b"/>
+    </linearGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>  <style>
+    .robot {
+      transform-box: view-box;
+      transform-origin: 250px 415px;
+      animation: jumpCycle 7s infinite;
+    }
+
+    .body {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: bodyBounce 7s infinite;
+    }
+
+    .arm-left {
+      transform-box: view-box;
+      transform-origin: 160px 315px;
+      animation: leftArm 7s infinite;
+    }
+
+    .arm-right {
+      transform-box: view-box;
+      transform-origin: 340px 315px;
+      animation: rightArm 7s infinite;
+    }
+
+    .antenna {
+      transform-box: view-box;
+      transform-origin: 250px 82px;
+      animation: antennaMove 7s infinite;
+    }
+
+    .eyes {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: blink 4.7s infinite;
+    }
+
+    .shadow {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: shadowMove 7s infinite;
+    }
+
+    @keyframes jumpCycle {
+      0%, 69%, 100% { transform: translateY(0); }
+      72% { transform: translateY(5px); }
+      76% { transform: translateY(-14px); }
+      81% { transform: translateY(-100px); }
+      85% { transform: translateY(-112px); }
+      89% { transform: translateY(-85px); }
+      94% { transform: translateY(0); }
+      96% { transform: translateY(8px); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes bodyBounce {
+      0%, 69%, 100% { transform: scale(1, 1); }
+      72% { transform: scale(1.07, .91); }
+      76% { transform: scale(.94, 1.09); }
+      81%, 85% { transform: scale(1.02, .98); }
+      89% { transform: scale(.98, 1.03); }
+      94% { transform: scale(1.08, .86); }
+      97% { transform: scale(.97, 1.04); }
+    }
+
+    @keyframes leftArm {
+      0%, 69%, 100% { transform: rotate(0deg); }
+      72% { transform: rotate(-10deg); }
+      78%, 85% { transform: rotate(-48deg) translateY(-9px); }
+      91% { transform: rotate(-25deg); }
+      96% { transform: rotate(8deg); }
+    }
+
+    @keyframes rightArm {
+      0%, 69%, 100% { transform: rotate(0deg); }
+      72% { transform: rotate(10deg); }
+      78%, 85% { transform: rotate(48deg) translateY(-9px); }
+      91% { transform: rotate(25deg); }
+      96% { transform: rotate(-8deg); }
+    }
+
+    @keyframes antennaMove {
+      0%, 69%, 100% { transform: rotate(0deg); }
+      76% { transform: rotate(-9deg); }
+      84% { transform: rotate(11deg); }
+      91% { transform: rotate(-5deg); }
+      97% { transform: rotate(2deg); }
+    }
+
+    @keyframes blink {
+      0%, 43%, 45%, 88%, 90%, 100% { transform: scaleY(1); }
+      44%, 89% { transform: scaleY(.08); }
+    }
+
+    @keyframes shadowMove {
+      0%, 69%, 100% { transform: scaleX(1); opacity: .18; }
+      76%, 85% { transform: scaleX(.58); opacity: .07; }
+      94% { transform: scaleX(1.12); opacity: .23; }
+      97% { transform: scaleX(.92); opacity: .14; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .robot, .body, .arm-left, .arm-right,
+      .antenna, .eyes, .shadow {
+        animation-duration: 14s;
+      }
+    }
+  </style>  <!-- Ground shadow --><ellipse class="shadow" cx="250" cy="435" rx="105" ry="15"
+fill="#00d9ff" opacity=".18"/>
+
+  <g class="robot">
+    <!-- Antenna -->
+    <g class="antenna">
+      <path d="M250 83 L250 49" stroke="#00d9ff"
+            stroke-width="7" stroke-linecap="round"/>
+      <circle cx="250" cy="38" r="12" fill="#00d9ff" filter="url(#glow)"/>
+      <circle cx="246" cy="34" r="3" fill="#c9f8ff"/>
+    </g><!-- Head -->
+<rect x="135" y="80" width="230" height="175" rx="55"
+      fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+
+<!-- Ears -->
+<rect x="115" y="145" width="25" height="55" rx="12"
+      fill="#00d9ff"/>
+<rect x="360" y="145" width="25" height="55" rx="12"
+      fill="#00d9ff"/>
+
+<!-- Face panel -->
+<rect x="165" y="115" width="170" height="110" rx="35"
+      fill="url(#faceGradient)"/>
+
+<!-- Eyes -->
+<g class="eyes" fill="#00e5ff" filter="url(#glow)">
+  <ellipse cx="205" cy="160" rx="18" ry="16"/>
+  <ellipse cx="295" cy="160" rx="18" ry="16"/>
+</g>
+
+<!-- Smile -->
+<path d="M228 190 Q250 212 272 190"
+      fill="none" stroke="#00d9ff"
+      stroke-width="6" stroke-linecap="round"/>
+
+<!-- Animated body -->
+<g class="body">
+  <rect x="175" y="270" width="150" height="115" rx="38"
+        fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+
+  <!-- Chest display -->
+  <rect x="215" y="300" width="70" height="38" rx="12"
+        fill="#080c11" stroke="#126276" stroke-width="2"/>
+
+  <g fill="#00d9ff" filter="url(#glow)">
+    <circle cx="235" cy="319" r="4.5"/>
+    <circle cx="250" cy="319" r="4.5"/>
+    <circle cx="265" cy="319" r="4.5"/>
+  </g>
+
+  <!-- Arms -->
+  <g class="arm-left">
+    <ellipse cx="160" cy="315" rx="27" ry="31"
+             fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+    <ellipse cx="153" cy="306" rx="7" ry="9"
+             fill="#53616e" opacity=".6"/>
+  </g>
+
+  <g class="arm-right">
+    <ellipse cx="340" cy="315" rx="27" ry="31"
+             fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+    <ellipse cx="333" cy="306" rx="7" ry="9"
+             fill="#53616e" opacity=".6"/>
+  </g>
+
+  <!-- Rounded feet -->
+  <ellipse cx="210" cy="405" rx="43" ry="23"
+           fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+  <ellipse cx="290" cy="405" rx="43" ry="23"
+           fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+
+  <!-- Foot highlights -->
+  <path d="M184 402 Q204 391 221 400"
+        fill="none" stroke="#667986" stroke-width="3"
+        stroke-linecap="round" opacity=".6"/>
+  <path d="M264 402 Q284 391 301 400"
+        fill="none" stroke="#667986" stroke-width="3"
+        stroke-linecap="round" opacity=".6"/>
+</g>
+
+  </g>
+</svg><svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#343d48"/>
+      <stop offset="100%" stop-color="#171c23"/>
+    </linearGradient>
+    <linearGradient id="faceGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#101820"/>
+      <stop offset="100%" stop-color="#05080b"/>
+    </linearGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>  <style>
+    .robot {
+      transform-box: view-box;
+      transform-origin: 250px 415px;
+      animation: jumpCycle 7s infinite;
+    }
+
+    .body {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: bodyBounce 7s infinite;
+    }
+
+    .arm-left {
+      transform-box: view-box;
+      transform-origin: 160px 315px;
+      animation: leftArm 7s infinite;
+    }
+
+    .arm-right {
+      transform-box: view-box;
+      transform-origin: 340px 315px;
+      animation: rightArm 7s infinite;
+    }
+
+    .antenna {
+      transform-box: view-box;
+      transform-origin: 250px 82px;
+      animation: antennaMove 7s infinite;
+    }
+
+    .eyes {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: blink 4.7s infinite;
+    }
+
+    .shadow {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: shadowMove 7s infinite;
+    }
+
+    @keyframes jumpCycle {
+      0%, 69%, 100% { transform: translateY(0); }
+      72% { transform: translateY(5px); }
+      76% { transform: translateY(-14px); }
+      81% { transform: translateY(-100px); }
+      85% { transform: translateY(-112px); }
+      89% { transform: translateY(-85px); }
+      94% { transform: translateY(0); }
+      96% { transform: translateY(8px); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes bodyBounce {
+      0%, 69%, 100% { transform: scale(1, 1); }
+      72% { transform: scale(1.07, .91); }
+      76% { transform: scale(.94, 1.09); }
+      81%, 85% { transform: scale(1.02, .98); }
+      89% { transform: scale(.98, 1.03); }
+      94% { transform: scale(1.08, .86); }
+      97% { transform: scale(.97, 1.04); }
+    }
+
+    @keyframes leftArm {
+      0%, 69%, 100% { transform: rotate(0deg); }
+      72% { transform: rotate(-10deg); }
+      78%, 85% { transform: rotate(-48deg) translateY(-9px); }
+      91% { transform: rotate(-25deg); }
+      96% { transform: rotate(8deg); }
+    }
+
+    @keyframes rightArm {
+      0%, 69%, 100% { transform: rotate(0deg); }
+      72% { transform: rotate(10deg); }
+      78%, 85% { transform: rotate(48deg) translateY(-9px); }
+      91% { transform: rotate(25deg); }
+      96% { transform: rotate(-8deg); }
+    }
+
+    @keyframes antennaMove {
+      0%, 69%, 100% { transform: rotate(0deg); }
+      76% { transform: rotate(-9deg); }
+      84% { transform: rotate(11deg); }
+      91% { transform: rotate(-5deg); }
+      97% { transform: rotate(2deg); }
+    }
+
+    @keyframes blink {
+      0%, 43%, 45%, 88%, 90%, 100% { transform: scaleY(1); }
+      44%, 89% { transform: scaleY(.08); }
+    }
+
+    @keyframes shadowMove {
+      0%, 69%, 100% { transform: scaleX(1); opacity: .18; }
+      76%, 85% { transform: scaleX(.58); opacity: .07; }
+      94% { transform: scaleX(1.12); opacity: .23; }
+      97% { transform: scaleX(.92); opacity: .14; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .robot, .body, .arm-left, .arm-right,
+      .antenna, .eyes, .shadow {
+        animation-duration: 14s;
+      }
+    }
+  </style>  <!-- Ground shadow --><ellipse class="shadow" cx="250" cy="435" rx="105" ry="15"
+fill="#00d9ff" opacity=".18"/>
+
+  <g class="robot">
+    <!-- Antenna -->
+    <g class="antenna">
+      <path d="M250 83 L250 49" stroke="#00d9ff"
+            stroke-width="7" stroke-linecap="round"/>
+      <circle cx="250" cy="38" r="12" fill="#00d9ff" filter="url(#glow)"/>
+      <circle cx="246" cy="34" r="3" fill="#c9f8ff"/>
+    </g><!-- Head -->
+<rect x="135" y="80" width="230" height="175" rx="55"
+      fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+
+<!-- Ears -->
+<rect x="115" y="145" width="25" height="55" rx="12"
+      fill="#00d9ff"/>
+<rect x="360" y="145" width="25" height="55" rx="12"
+      fill="#00d9ff"/>
+
+<!-- Face panel -->
+<rect x="165" y="115" width="170" height="110" rx="35"
+      fill="url(#faceGradient)"/>
+
+<!-- Eyes -->
+<g class="eyes" fill="#00e5ff" filter="url(#glow)">
+  <ellipse cx="205" cy="160" rx="18" ry="16"/>
+  <ellipse cx="295" cy="160" rx="18" ry="16"/>
+</g>
+
+<!-- Smile -->
+<path d="M228 190 Q250 212 272 190"
+      fill="none" stroke="#00d9ff"
+      stroke-width="6" stroke-linecap="round"/>
+
+<!-- Animated body -->
+<g class="body">
+  <rect x="175" y="270" width="150" height="115" rx="38"
+        fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+
+  <!-- Chest display -->
+  <rect x="215" y="300" width="70" height="38" rx="12"
+        fill="#080c11" stroke="#126276" stroke-width="2"/>
+
+  <g fill="#00d9ff" filter="url(#glow)">
+    <circle cx="235" cy="319" r="4.5"/>
+    <circle cx="250" cy="319" r="4.5"/>
+    <circle cx="265" cy="319" r="4.5"/>
+  </g>
+
+  <!-- Arms -->
+  <g class="arm-left">
+    <ellipse cx="160" cy="315" rx="27" ry="31"
+             fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+    <ellipse cx="153" cy="306" rx="7" ry="9"
+             fill="#53616e" opacity=".6"/>
+  </g>
+
+  <g class="arm-right">
+    <ellipse cx="340" cy="315" rx="27" ry="31"
+             fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+    <ellipse cx="333" cy="306" rx="7" ry="9"
+             fill="#53616e" opacity=".6"/>
+  </g>
+
+  <!-- Rounded feet -->
+  <ellipse cx="210" cy="405" rx="43" ry="23"
+           fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+  <ellipse cx="290" cy="405" rx="43" ry="23"
+           fill="url(#bodyGradient)" stroke="#00d9ff" stroke-width="6"/>
+
+  <!-- Foot highlights -->
+  <path d="M184 402 Q204 391 221 400"
+        fill="none" stroke="#667986" stroke-width="3"
+        stroke-linecap="round" opacity=".6"/>
+  <path d="M264 402 Q284 391 301 400"
+        fill="none" stroke="#667986" stroke-width="3"
+        stroke-linecap="round" opacity=".6"/>
+</g>
+
+  </g>
+</svg>
